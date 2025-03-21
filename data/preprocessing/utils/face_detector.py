@@ -43,8 +43,6 @@ class FaceDetector:
             return None
         else:
 
-            print("!!!", bounding_box.shape[0])
-
             result_bounding_box = bounding_box[0]
 
             if self.optimal_image_size is not None:

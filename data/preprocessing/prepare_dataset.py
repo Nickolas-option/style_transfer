@@ -21,9 +21,12 @@ from data.preprocessing.utils.collection_utils import get_filtered_indexes, form
 class TrainConfig:
     common_data_folder: str = "./lego_minifigs"
     synthetic_data_folder: str = "./lego_professions"
+    all_data_folder: str = "./collected_heads"
     resize_param_common: Optional[int] = None
-    resize_param_synthetic: Optional[int] = None
+    resize_param_synthetic: Optional[int] = 512
     filter_percentile: float = 0.75
+    padding_param_common: int = 20
+    padding_param_syntetic: int = 50
     device: str = "cuda"
 
 @pyrallis.wrap()
@@ -57,8 +60,8 @@ def main(config: TrainConfig):
         common_dataset,
         common_boxes,
         common_indicies,
-        config.resize_param_common,
-        config.common_data_folder,
+        config.padding_param_common,
+        config.all_data_folder,
         "common"
     )
 
@@ -66,8 +69,8 @@ def main(config: TrainConfig):
         synthetic_dataset,
         synthetic_boxes,
         synthetic_indicies,
-        config.resize_param_synthetic,
-        config.synthetic_data_folder,
+        config.padding_param_syntetic,
+        config.all_data_folder,
         "synthetic"
     )
 

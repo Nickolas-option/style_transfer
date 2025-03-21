@@ -4,6 +4,7 @@ import numpy as np
 import os
 from tqdm import trange
 from torchvision.utils import save_image
+import os
 
 def form_masks_and_embeddings(
         config,
@@ -43,13 +44,20 @@ def get_filtered_indexes(
     common_data_indexes, common_data_vectors = zip(*common_data_pairs)
     syntetic_data_indexes, syntetic_data_vectors = zip(*syntetic_data_pairs)
 
-    face_detected_indexes = np.vstack(
+    common_data_indexes = np.array(common_data_indexes)
+    syntetic_data_indexes = np.array(syntetic_data_indexes)
+
+    common_data_vectors = np.array(common_data_vectors)
+    syntetic_data_vectors = np.array(syntetic_data_vectors)
+
+    face_detected_indexes = np.hstack((
         common_data_indexes, syntetic_data_indexes
-    )
-    face_detected_embeddings = np.vstack(
+    ))
+
+    face_detected_embeddings = np.vstack((
         np.array(common_data_vectors),
         np.array(syntetic_data_vectors)
-    )
+    ))
 
     face_detected_embeddings -= np.mean(face_detected_embeddings, axis=0)[None, :]
     face_detected_norms = np.linalg.norm(face_detected_embeddings, axis=1)
@@ -69,6 +77,10 @@ def construct_head_from_boxes(
     dataset_save_dir,
     dataset_label
 ):
+    
+    if not os.path.exists(dataset_save_dir):
+        os.makedirs(dataset_save_dir)
+
     for index in indicies:
         coords = boxes[index]
         coords[coords < 0] = 0
@@ -82,13 +94,10 @@ def construct_head_from_boxes(
 
         image = dataset[index]
 
-        x = max(x - padding_param, 0)
-        y = max(y - padding_param, 0)
-
-        x1 = min(x1 + padding_param, image.shape[2] - 1)
-        y1 = min(y1 + padding_param, image.shape[1] - 1)
+        x1 = min(x1 + padding_param * 2, image.shape[2] - 1)
+        y1 = min(y1 + padding_param * 2, image.shape[1] - 1)
 
         image = image[:, int(y):int(y1), int(x):int(x1)]
 
         save_path = os.path.join(dataset_save_dir, f"{dataset_label}_{index}.png")
-        save_image(save_path, dataset_label)
+        save_image(image, save_path)
