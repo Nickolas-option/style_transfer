@@ -24,12 +24,12 @@ This script generates Lego figure images with specified professions and emotions
 
    - **Default Parameters** (1 image, 3 concurrent requests, output folder `./lego_professions`):
      ```bash
-     python synthetic_gen.py
+     python synth_gen.py
      ```
 
    - **Custom Parameters**:
      ```bash
-     python synthetic_gen.py --num_images 5 --concurrent_requests 2 --output_folder ./my_lego_images
+     python synth_gen.py --num_images 5 --concurrent_requests 2 --output_folder ./my_lego_images
      ```
 
 ## Command-Line Arguments
@@ -42,7 +42,7 @@ This script generates Lego figure images with specified professions and emotions
 
 To generate 3 images with 2 concurrent requests and save them in the `./my_lego_images` folder, run:
 ```bash
-python synthetic_gen.py --num_images 3 --concurrent_requests 2 --output_folder ./my_lego_images
+python synth_gen.py --num_images 3 --concurrent_requests 2 --output_folder ./my_lego_images
 ```
 
 ## Notes
