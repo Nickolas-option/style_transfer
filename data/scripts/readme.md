@@ -72,14 +72,7 @@ pip install requests pyrallis
 
 ## Usage
 
-1. **Clone the Repository (if not already done):**
-
-   ```bash
-   git clone <repository-url>
-   cd <repository-directory>
-   ```
-
-2. **Configure the Script:**
+1. **Configure the Script:**
 
    The script uses a configuration class `Config` which can be modified programmatically or via command line arguments. The configuration options are as follows:
    - `base_url`: The base URL of the images.
@@ -88,7 +81,7 @@ pip install requests pyrallis
    - `start_num`: The starting number for the image filenames.
    - `end_num_dict`: A dictionary specifying the end number for each theme prefix.
 
-3. **Run the Script:**
+2. **Run the Script:**
 
    You can run the script directly from the command line. Here is an example command:
 
@@ -102,7 +95,7 @@ pip install requests pyrallis
    python scrapping_lego_script.py --base_url="https://example.com/images" --theme_prefixes="cty,agt" --output_folder="lego_minifigs" --start_num=1 --end_num_dict='{"cty": 2800, "agt": 1500}'
    ```
 
-4. **Output:**
+3. **Output:**
 
    The images will be saved in the specified `output_folder` with filenames based on the theme prefix and number.
 
