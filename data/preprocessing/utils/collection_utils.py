@@ -1,10 +1,11 @@
-from data.utils.image_dataset import ImageDataset
-from data.preprocessing.utils.face_detector import FaceDetector
+import os
+
 import numpy as np
-import os
-from tqdm import trange
 from torchvision.utils import save_image
-import os
+from tqdm import trange
+
+from data.preprocessing.utils.face_detector import FaceDetector
+
 
 def form_masks_and_embeddings(
         config,

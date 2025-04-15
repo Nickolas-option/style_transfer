@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 import asyncio
-import random
-import pathlib
-import time
-from yandex_cloud_ml_sdk import YCloudML
-import argparse
 import os
-from dotenv import load_dotenv
-import pyrallis
+import pathlib
+import random
+import time
 from dataclasses import dataclass, field
+
+import pyrallis
+from dotenv import load_dotenv
+from yandex_cloud_ml_sdk import YCloudML
+
 
 @dataclass
 class Config:

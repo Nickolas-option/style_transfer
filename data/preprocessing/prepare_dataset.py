@@ -1,21 +1,14 @@
 
-from torch.utils.data import Dataset
-import torchvision
-from facenet_pytorch import MTCNN, InceptionResnetV1
-from torchvision.transforms import ToTensor
-from PIL import Image
-import os
-from pathlib import Path
-from PIL import Image
-from torch.utils.data import Dataset
 from dataclasses import dataclass
 from typing import Optional
-import pyrallis
-from tqdm import trange, tqdm
 
+import pyrallis
+import torchvision
+
+from data.preprocessing.utils.collection_utils import (
+    construct_head_from_boxes, form_masks_and_embeddings, get_filtered_indexes)
 from data.utils.image_dataset import ImageDataset
-from data.preprocessing.utils.face_detector import FaceDetector
-from data.preprocessing.utils.collection_utils import get_filtered_indexes, form_masks_and_embeddings, construct_head_from_boxes
+
 
 @dataclass
 class TrainConfig:

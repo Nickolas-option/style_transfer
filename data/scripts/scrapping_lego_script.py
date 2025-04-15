@@ -1,9 +1,10 @@
 import os
-import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from pyrallis import field
-from pyrallis import parse
+
+import requests
+from pyrallis import field, parse
+
 
 @dataclass
 class Config:

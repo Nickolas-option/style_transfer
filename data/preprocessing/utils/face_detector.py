@@ -1,6 +1,7 @@
+import torch
 import torchvision
 from facenet_pytorch import MTCNN, InceptionResnetV1
-import torch
+
 
 class FaceDetector:
     def __init__(self, device, optimal_image_size=None):
