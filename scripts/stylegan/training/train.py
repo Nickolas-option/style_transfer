@@ -15,7 +15,9 @@ from PIL import Image
 
 import numpy as np
 import torch
+
 from torch import optim
+from torch import nn
 from torch.nn import functional as F
 import torchvision.transforms as transforms
 from torchmetrics.image.fid import FrechetInceptionDistance
@@ -91,6 +93,14 @@ def main(config: TrainConfig):
 
     generator = deepcopy(original_generator)
 
+    generator.to(config.device) # Move the model intended for training to the primary device
+
+    # --- Add DataParallel for Generator ---
+    if torch.cuda.is_available() and torch.cuda.device_count() > 1:
+        print(f"--- Using {torch.cuda.device_count()} GPUs for Generator Training ---")
+        generator = nn.DataParallel(generator)
+    # --- End DataParallel ---
+
     # ----------------------- Image Preprocessing -----------------------
     transform = transforms.Compose(
         [
@@ -124,9 +134,22 @@ def main(config: TrainConfig):
     targets = torch.stack(targets)
     latents = torch.stack(latents)
 
-    # ----------------------- Load Discriminator -----------------------
-    discriminator = Discriminator(1024, 2).eval().to(config.device)
+ 
+     # ----------------------- Load Discriminator -----------------------
+    # Initialize discriminator (without .to(device) or .eval() yet)
+    discriminator = Discriminator(1024, 2)
+    # Load state dict before wrapping
     discriminator.load_state_dict(ckpt["d"], strict=False)
+    # Set to evaluation mode
+    discriminator.eval()
+    # Move to the primary device
+    discriminator.to(config.device)
+
+    # --- Add DataParallel for Discriminator ---
+    if torch.cuda.is_available() and torch.cuda.device_count() > 1:
+        print(f"--- Using {torch.cuda.device_count()} GPUs for Discriminator Evaluation ---")
+        discriminator = nn.DataParallel(discriminator)
+    # --- End DataParallel ---
 
     # ----------------------- Inversion of Input Image -----------------------
     test_img_paths = [
