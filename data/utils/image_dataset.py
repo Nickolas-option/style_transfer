@@ -15,7 +15,7 @@ class ImageDataset(Dataset):
         self.root_dir = Path(root_dir)
         self.transform = transform
         self.image_paths = []
-        
+
         # Collect all image paths
         for path in self.root_dir.iterdir():
             if path.is_file():
@@ -26,9 +26,9 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = self.image_paths[idx]
-        image = Image.open(img_path).convert('RGB')  # Convert to RGB
-        
+        image = Image.open(img_path).convert("RGB")  # Convert to RGB
+
         if self.transform:
             image = self.transform(image)
-            
+
         return image
