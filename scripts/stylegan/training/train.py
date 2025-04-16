@@ -1,53 +1,77 @@
-from PIL import Image
+"""
+StyleGAN fine-tuning with JoJoGAN for style transfer.
+
+This module implements the JoJoGAN training pipeline, which fine-tunes
+a pre-trained StyleGAN model to perform style transfer with minimal data.
+It includes configuration, data processing, training, and evaluation.
+"""
+
 import os
+import sys
+import random
+from copy import deepcopy
 from dataclasses import dataclass
-import pyrallis
-from tqdm import tqdm
+from PIL import Image
+
+import numpy as np
 import torch
+from torch import optim
+from torch.nn import functional as F
 import torchvision.transforms as transforms
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchmetrics.image.inception import InceptionScore
-import lpips  # Import LPIPS
-import random
-
-import numpy as np
-from torch import optim
-from torch.nn import functional as F
+import lpips
 import wandb
+import pyrallis
+from tqdm import tqdm
 
-
-from copy import deepcopy
-
-
-import sys
-
+# Add JoJoGAN to path and import modules
 sys.path.append("./JoJoGAN")
-from model import Generator, Discriminator
-from util import align_face
-from e4e_projection import projection as e4e_projection
+try:
+    from JoJoGAN.model import Generator, Discriminator
+    from JoJoGAN.util import align_face
+    from JoJoGAN.e4e_projection import projection as e4e_projection
+except ImportError:
+    # Fallback to direct import if package structure is different
+    from model import Generator, Discriminator
+    from util import align_face
+    from e4e_projection import projection as e4e_projection
 
 
 @dataclass
 class TrainConfig:
-    dataset_dir: str = "./collected_heads"
-    device: str = "cuda"
-    stylegan_ckpt: str = "models/stylegan2-ffhq-config-f.pt"
-    test_img_dir: str = "test_input"  # Modify to handle a directory of images
-    alpha: float = 0.0  # (1 - alpha) controls stylization strength
-    preserve_color: bool = False
-    num_iter: int = 5000
-    log_interval: int = 50
-    use_wandb: bool = True
-    latent_dim: int = 512
-    lr: float = 2e-3
-    wandb_project: str = "JoJoGAN"
-    wandb_group: str = "test_jojogan"
-    wandb_name: str = "logging"
-    seed: int = 52
+    """Configuration for StyleGAN fine-tuning with JoJoGAN.
+    
+    This dataclass defines all parameters needed for the training process,
+    including paths, hyperparameters, and logging settings.
+    """
+    dataset_dir: str = "./collected_heads"  # Directory containing target style images
+    device: str = "cuda"  # Device to run training on (cuda or cpu)
+    stylegan_ckpt: str = "models/stylegan2-ffhq-config-f.pt"  # Path to StyleGAN checkpoint
+    test_img_dir: str = "test_input"  # Directory containing test images for evaluation
+    alpha: float = 0.0  # Controls stylization strength (1-alpha)
+    preserve_color: bool = False  # Whether to preserve original colors
+    num_iter: int = 5000  # Number of training iterations
+    log_interval: int = 50  # Interval for logging metrics and images
+    use_wandb: bool = True  # Whether to use Weights & Biases for logging
+    latent_dim: int = 512  # Dimension of the latent space
+    lr: float = 2e-3  # Learning rate for optimizer
+    wandb_project: str = "JoJoGAN"  # W&B project name
+    wandb_group: str = "test_jojogan"  # W&B group name
+    wandb_name: str = "logging"  # W&B run name
+    seed: int = 52  # Random seed for reproducibility
 
 
 @pyrallis.wrap()
 def main(config: TrainConfig):
+    """Main training function for JoJoGAN style transfer.
+    
+    This function implements the JoJoGAN training pipeline, which fine-tunes
+    a pre-trained StyleGAN model to perform style transfer with minimal data.
+    
+    Args:
+        config: Configuration parameters for the training process
+    """
     # ----------------------- Reproducibility -----------------------
     random.seed(config.seed)
     np.random.seed(config.seed)
@@ -81,7 +105,8 @@ def main(config: TrainConfig):
     ]
     targets, latents = [], []
 
-    for i, name in enumerate(tqdm(names)):
+    # Process target style images and their latent codes
+    for i, name in enumerate(tqdm(names, desc="Processing style images")):
         if name.endswith(".pt") or i >= 5:
             continue
 
@@ -125,6 +150,8 @@ def main(config: TrainConfig):
     # ----------------------- Training Setup -----------------------
     generator = deepcopy(original_generator)
     g_optim = optim.Adam(generator.parameters(), lr=config.lr, betas=(0, 0.99))
+    
+    # Define which layers to swap for style transfer
     id_swap = (
         [9, 11, 15, 16, 17]
         if config.preserve_color
@@ -136,27 +163,32 @@ def main(config: TrainConfig):
     inception = InceptionScore().to(config.device)
 
     # ----------------------- Training Loop -----------------------
-    for step in tqdm(range(config.num_iter)):
+    for step in tqdm(range(config.num_iter), desc="Training progress"):
         idx = np.random.choice(latents.shape[0], 2)
         sample_targets = targets[idx]
         sample_latents = latents[idx]
 
+        # Generate mean latent vector for style mixing
         mean_w = generator.get_latent(
             torch.randn([2, config.latent_dim]).to(config.device)
         )
         mean_w = mean_w.unsqueeze(1).repeat(1, generator.n_latent, 1)
 
+        # Mix latents for style transfer
         in_latent = sample_latents.clone()
         in_latent[:, id_swap] = (1 - config.alpha) * sample_latents[
             :, id_swap
         ] + config.alpha * mean_w[:, id_swap]
 
+        # Generate images with the current generator
         img = generator(in_latent, input_is_latent=True)
 
+        # Extract features using the discriminator
         with torch.no_grad():
             real_feat = discriminator(sample_targets)
         fake_feat = discriminator(img)
 
+        # Calculate feature matching loss
         loss = sum([F.l1_loss(a, b) for a, b in zip(fake_feat, real_feat)]) / len(
             fake_feat
         )
@@ -173,6 +205,7 @@ def main(config: TrainConfig):
                 total_lpips_score = 0
                 num_images = len(test_img_paths)
 
+                # Process each test image
                 for test_img_path in test_img_paths:
                     if test_img_path.endswith(".pt"):
                         continue
@@ -182,6 +215,7 @@ def main(config: TrainConfig):
                         aligned_face, latent_path, config.device
                     ).unsqueeze(0)
 
+                    # Generate stylized image
                     my_sample = generator(my_w, input_is_latent=True)
 
                     # Log stylized image
@@ -226,10 +260,12 @@ def main(config: TrainConfig):
                     step=step,
                 )
 
+        # Update generator weights
         g_optim.zero_grad()
         loss.backward()
         g_optim.step()
 
+    # Save the final model
     if config.use_wandb:
         torch.save(generator.state_dict(), "finetuned_generator.pt")
         wandb.save("finetuned_generator.pt")
