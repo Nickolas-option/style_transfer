@@ -14,6 +14,7 @@ import torchvision.utils as utils
 from torchmetrics.image.fid import FrechetInceptionDistance
 from torchmetrics.image.inception import InceptionScore
 import lpips  # Import LPIPS
+import random
 
 import numpy as np
 from torch import nn, autograd, optim
@@ -45,13 +46,27 @@ class TrainConfig:
     num_iter: int = 5000
     log_interval: int = 50
     use_wandb: bool = True
-    wandb_project: str = "JoJoGAN"
     latent_dim: int = 512
     lr: float = 2e-3
+    wandb_project: str = "JoJoGAN"
+    wandb_group: str = "test_jojogan"
+    wandb_name: str = "logging"
+    seed: int = 52
 
 
 @pyrallis.wrap()
 def main(config: TrainConfig):
+    # ----------------------- Reproducibility -----------------------
+    random.seed(config.seed)
+    np.random.seed(config.seed)
+    torch.manual_seed(config.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(config.seed)
+        torch.cuda.manual_seed_all(config.seed)
+
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
     # ----------------------- Load Generator -----------------------
     original_generator = Generator(1024, config.latent_dim, 8, 2).to(config.device)
     ckpt = torch.load(config.stylegan_ckpt, map_location="cpu")
@@ -97,7 +112,11 @@ def main(config: TrainConfig):
 
     # ----------------------- Initialize wandb -----------------------
     if config.use_wandb:
-        wandb.init(project=config.wandb_project, config=vars(config))
+        wandb.init(
+            project=config.wandb_project,
+            group=config.wandb_group,
+            name=config.wandb_name,
+            config=config)
 
     # ----------------------- Initialize LPIPS -----------------------
     lpips_metric = lpips.LPIPS(net='alex').to(config.device)
