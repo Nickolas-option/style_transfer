@@ -32,34 +32,40 @@ This repository is structured to efficiently handle **style transfer** using **S
 ## 📂 Directory Overview  
 
   ```plaintext
-style_transfer/  
-│  
-├── data/                     
-│   ├── __init__.py           
-│   ├── notebooks/            
-│   │   └── collected_data_eda.ipynb  
-│   ├── preprocessing/     
-│   │   ├── __init__.py       
-│   │   ├── prepare_dataset.py  
-│   │   ├── utils/           
-│   │   │   ├── __init__.py  
-│   │   │   ├── collection_utils.py  
-│   │   │   ├── face_detector.py  
-│   ├── scripts/             
-│   │   ├── scrapping_lego_script.py  # LEGO-style image scraping  
-│   │   ├── synth_gen.py      # Synthetic data generation  
-│   │   ├── readme.md         
-│   ├── utils/               
-│   │   ├── __init__.py      
-│   │   ├── image_dataset.py  
-│  
-├── scripts/                  
-│   ├── stylegan/              
-│   │   ├── training/         
-│   │   │   ├── train.py      # Main training script  
-│  
-├── .gitignore               
-├── README.md                
+style_transfer/
+│
+├── .git/                     # Git repository metadata
+├── .gitignore                # Specifies intentionally untracked files that Git should ignore
+├── .pylintrc                 # Pylint configuration file
+├── .ruff_cache/              # Cache directory for Ruff linter/formatter
+├── .venv/                    # Virtual environment directory
+├── data/
+│   ├── __init__.py
+│   ├── notebooks/
+│   │   └── collected_data_eda.ipynb # (Assuming this file exists based on original structure)
+│   ├── preprocessing/
+│   │   ├── __init__.py
+│   │   ├── prepare_dataset.py # Script to prepare the dataset
+│   │   └── utils/
+│   │       ├── __init__.py
+│   │       ├── collection_utils.py # Utilities for data collection
+│   │       └── face_detector.py    # Face detection utility
+│   ├── scripts/
+│   │   ├── readme.md               # README for data scripts
+│   │   ├── scrapping_lego_script.py # LEGO-style image scraping script
+│   │   └── synth_gen.py          # Synthetic data generation script
+│   └── utils/
+│       ├── __init__.py
+│       └── image_dataset.py      # Custom image dataset class
+│
+├── README.md                 # Project README file
+├── requirements.txt          # Python package dependencies
+├── scripts/
+│   └── stylegan/
+│       └── training/
+│           └── train.py          # Main StyleGAN training script
+│
+└── test_input/               # Directory for test inputs
 ```
 
 ## Setup
