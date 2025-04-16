@@ -8,6 +8,16 @@ from pyrallis import field, parse
 
 @dataclass
 class Config:
+    """
+    Configuration for the LEGO minifigure image scraper.
+    
+    Attributes:
+        base_url: Base URL from which to download LEGO minifigure images.
+        theme_prefixes: List of LEGO theme prefixes to download (e.g., 'cty' for City).
+        output_folder: Directory where downloaded images will be saved.
+        start_num: Starting number for image sequence.
+        end_num_dict: Dictionary mapping theme prefixes to their maximum image numbers.
+    """
     base_url: str = field(default="")
     theme_prefixes: list = field(
         default=[
@@ -110,6 +120,15 @@ def download_images_in_parallel(
 
 
 def main(cfg: Config):
+    """
+    Main function to execute the LEGO minifigure image scraping process.
+    
+    This function creates the output directory if it doesn't exist and
+    downloads images for each theme prefix specified in the configuration.
+    
+    Parameters:
+    cfg (Config): Configuration object containing scraping parameters.
+    """
     if not os.path.exists(cfg.output_folder):
         os.makedirs(cfg.output_folder)
 

@@ -8,7 +8,19 @@ from data.preprocessing.utils.face_detector import FaceDetector
 
 
 def form_masks_and_embeddings(config, dataset, resize_param, dataset_label):
-
+    """
+    Detect faces in a dataset and extract their coordinates and embeddings.
+    
+    Arguments:
+        config: Configuration object containing device information
+        dataset: The dataset containing images to process
+        resize_param: Parameter for resizing images during face detection
+        dataset_label: Label for the dataset (used for progress bar)
+        
+    Returns:
+        result_boxes: Dictionary mapping image indices to face bounding boxes
+        result_embeddings: List of tuples containing (index, embedding) pairs
+    """
     curr_face_detector = FaceDetector(config.device, resize_param)
     result_embeddings = []
     result_boxes = {}
@@ -24,15 +36,19 @@ def form_masks_and_embeddings(config, dataset, resize_param, dataset_label):
 
 def get_filtered_indexes(common_data_pairs, syntetic_data_pairs, percentile=0.9):
     """
-    A simple filter function that filters
-    augmented and non-augmented data based on their embeddings
-
+    Filter augmented and non-augmented data based on their face embeddings.
+    
+    This function normalizes face embeddings and filters out outliers based on
+    the vector norm, keeping only the specified percentile of samples.
+    
     Arguments:
-     -- common_data_pairs
-     -- syntetic_data_pairs
-     -- percentile
+        common_data_pairs: List of (index, embedding) pairs for original data
+        syntetic_data_pairs: List of (index, embedding) pairs for synthetic/augmented data
+        percentile: Fraction of data to keep (default: 0.9)
+        
+    Returns:
+        Tuple of (filtered_common_indexes, filtered_synthetic_indexes)
     """
-
     common_data_indexes, common_data_vectors = zip(*common_data_pairs)
     syntetic_data_indexes, syntetic_data_vectors = zip(*syntetic_data_pairs)
 
@@ -64,7 +80,20 @@ def get_filtered_indexes(common_data_pairs, syntetic_data_pairs, percentile=0.9)
 def construct_head_from_boxes(
     dataset, boxes, indicies, padding_param, dataset_save_dir, dataset_label
 ):
-
+    """
+    Crop face regions from images based on bounding boxes and save them.
+    
+    This function extracts face regions from images using the provided bounding boxes,
+    applies padding, and saves the cropped faces as individual image files.
+    
+    Arguments:
+        dataset: The dataset containing images
+        boxes: Dictionary mapping image indices to face bounding boxes
+        indicies: List of indices to process
+        padding_param: Amount of padding to add around the face region
+        dataset_save_dir: Directory to save the cropped face images
+        dataset_label: Label to use in the saved filenames
+    """
     if not os.path.exists(dataset_save_dir):
         os.makedirs(dataset_save_dir)
 

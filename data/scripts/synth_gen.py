@@ -1,4 +1,18 @@
 #!/usr/bin/env python3
+"""
+Lego Figure Image Generator
+
+This script generates Lego figure images with specified professions and emotions
+using the Yandex Cloud ML SDK. It allows for concurrent generation of multiple images
+and handles API rate limiting through a semaphore.
+
+Usage:
+    python synth_gen.py [--num_images N] [--concurrent_requests N] [--output_folder PATH]
+
+Environment Variables:
+    YANDEX_FOLDER_ID: Your Yandex Cloud folder ID
+    YANDEX_AUTH_TOKEN: Your Yandex Cloud authentication token
+"""
 import asyncio
 import os
 import pathlib
@@ -34,6 +48,7 @@ class Config:
     )
 
 
+# List of professions to randomly select from when generating images
 professions = [
     "механик",
     "программист",
@@ -85,6 +100,7 @@ professions = [
     "библиотекарь",
 ]
 
+# List of emotions to randomly select from when generating images
 emotions = ["happy", "sad", "angry", "surprised", "fearful"]
 
 
@@ -166,6 +182,15 @@ async def main(
     semaphore = asyncio.Semaphore(concurrent_requests)
 
     async def bounded_generate(coro):
+        """
+        Wrapper function to limit concurrent execution using a semaphore.
+        
+        Args:
+            coro: The coroutine to execute with the semaphore
+            
+        Returns:
+            The result of the coroutine execution
+        """
         async with semaphore:
             return await coro
 
@@ -176,6 +201,10 @@ async def main(
 
 
 def run():
+    """
+    Entry point function that parses configuration and runs the main async function.
+    Loads environment variables from .env file if present.
+    """
     load_dotenv()
     cfg = pyrallis.parse(config_class=Config)
     asyncio.run(
