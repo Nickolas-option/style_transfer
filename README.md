@@ -42,7 +42,7 @@ style_transfer/
 ├── data/
 │   ├── __init__.py
 │   ├── notebooks/
-│   │   └── collected_data_eda.ipynb # (Assuming this file exists based on original structure)
+│   │   └── collected_data_eda.ipynb #
 │   ├── preprocessing/
 │   │   ├── __init__.py
 │   │   ├── prepare_dataset.py # Script to prepare the dataset
