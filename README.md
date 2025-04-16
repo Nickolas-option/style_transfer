@@ -62,3 +62,36 @@ style_transfer/
 ├── README.md                
 ```
 
+## Setup
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/Nickolas-option/style_transfer
+    cd style_transfer
+    ```
+
+2.  **Create and activate a virtual environment:**
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
+    ```
+
+3.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## Running the Project
+
+The main training script is located at `scripts/stylegan/training/train.py`.
+
+1.  **Ensure the virtual environment is active:**
+    ```bash
+    source .venv/bin/activate
+    ```
+
+2.  **Run the training script:**
+    ```bash
+    python scripts/stylegan/training/train.py
+    ```
+    The script uses `pyrallis` for configuration, defined in the `TrainConfig` dataclass within the script. You can override default parameters via command-line arguments if needed (e.g., `python scripts/stylegan/training/train.py --num_iter 1000`). Refer to the `TrainConfig` class for available options.
